@@ -510,7 +510,7 @@ class VoiceStreamingServer:
             "uptime_seconds": int(
                 asyncio.get_event_loop().time() - self.start_time
             ),
-            "addon_version": "1.1.9",
+            "addon_version": "1.2.0",
         }
 
     async def _license_loop(self):

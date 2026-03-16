@@ -1,3 +1,6 @@
+# Global ARG – must be before any FROM to be available in FROM lines
+ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base:latest
+
 # Stage 1: Build the frontend
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app
@@ -7,7 +10,7 @@ COPY frontend/ ./frontend/
 RUN cd frontend && npm run build
 
 # Stage 2: Final image
-ARG BUILD_FROM=alpine:latest
+ARG BUILD_FROM
 FROM $BUILD_FROM
 
 # Install dependencies
