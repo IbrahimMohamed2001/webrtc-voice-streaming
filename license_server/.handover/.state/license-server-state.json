@@ -1,0 +1,49 @@
+{
+  "project": {
+    "name": "license-server",
+    "scan_root": "./license_server",
+    "started_at": "2026-03-16T17:00:00Z",
+    "last_updated": "2026-03-16T17:15:00Z",
+    "tech_stack": ["Python 3.11", "FastAPI", "PostgreSQL", "Redis", "Docker", "Gunicorn"]
+  },
+  "current_phase": {
+    "phase": 3,
+    "phase_name": "validation",
+    "current_module": "license_server",
+    "progress_percentage": 100
+  },
+  "discovery": {
+    "modules_identified": 6,
+    "modules_analyzed": 6,
+    "entry_points_found": ["license_server/main.py", "license_server/Dockerfile"],
+    "dependencies_mapped": true
+  },
+  "synthesis": {
+    "docs_planned": [
+      { "path": "license_server/.handover/00-README-FIRST.md", "status": "created" },
+      { "path": "license_server/.handover/01-SETUP-GUIDE.md", "status": "created" },
+      { "path": "license_server/.handover/02-ARCHITECTURE.md", "status": "created" },
+      { "path": "license_server/.handover/03-DECISION-LOG.md", "status": "created" },
+      { "path": "license_server/.handover/04-GOTCHAS.md", "status": "created" }
+    ]
+  },
+  "context_snapshot": {
+    "critical_findings": [
+      "Hardware fingerprinting uses machine-id, MAC, CPU serial, disk UUID, hostname",
+      "Token uses RSA-4096 with JWT RS256",
+      "Hardware mismatch triggers automatic suspension",
+      "Keys stored in Docker volume /keys/"
+    ],
+    "architecture_pattern": "FastAPI REST API with SQLAlchemy ORM",
+    "key_decisions_inferred": [
+      "Using JWT for stateless authentication",
+      "Hardware binding via SHA256 of multiple components",
+      "PostgreSQL for persistent storage",
+      "Redis prepared but not actively used in current implementation"
+    ]
+  },
+  "recovery_info": {
+    "can_resume": false,
+    "next_action": "Analysis complete"
+  }
+}

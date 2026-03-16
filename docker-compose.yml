@@ -19,8 +19,8 @@ services:
 
   license_server:
     build:
-      context: .
-      dockerfile: license_server/Dockerfile
+      context: license_server
+      dockerfile: Dockerfile
     container_name: license_server
     restart: unless-stopped
     ports:
@@ -28,7 +28,7 @@ services:
     environment:
       DATABASE_URL: postgresql://license_user:license_pass@db:5432/webrtc_licenses
       SECRET_KEY: ${SECRET_KEY:-change_this_to_a_secure_random_string}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost,https://localhost}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost,https://localhost,http://localhost:3000}
     depends_on:
       db:
         condition: service_healthy

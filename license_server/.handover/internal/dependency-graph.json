@@ -1,0 +1,55 @@
+{
+  "project": "license-server",
+  "generated_at": "2026-03-16T17:15:00Z",
+  "modules": [
+    {
+      "name": "main.py",
+      "type": "entrypoint",
+      "dependencies": ["models.py", "token_generator.py", "hw_fingerprint.py"],
+      "exports": ["FastAPI app", "API endpoints"]
+    },
+    {
+      "name": "models.py",
+      "type": "database",
+      "dependencies": [],
+      "exports": ["License", "ValidationLog", "SecurityIncident", "SessionState"]
+    },
+    {
+      "name": "token_generator.py",
+      "type": "security",
+      "dependencies": [],
+      "exports": ["TokenGenerator"]
+    },
+    {
+      "name": "hw_fingerprint.py",
+      "type": "security",
+      "dependencies": [],
+      "exports": ["generate_hardware_id", "validate_hardware_components"]
+    },
+    {
+      "name": "requirements.txt",
+      "type": "dependencies",
+      "packages": ["fastapi", "uvicorn", "sqlalchemy", "psycopg2-binary", "pydantic", "pyjwt", "cryptography", "httpx", "gunicorn"]
+    },
+    {
+      "name": "Dockerfile",
+      "type": "infrastructure",
+      "dependencies": ["requirements.txt", "main.py", "models.py", "token_generator.py", "hw_fingerprint.py"],
+      "base_image": "python:3.11-slim"
+    }
+  ],
+  "external_dependencies": [
+    {"name": "PostgreSQL", "version": "15", "purpose": "Database"},
+    {"name": "Redis", "version": "7", "purpose": "Session cache (not active)"},
+    {"name": "Nginx", "version": "latest", "purpose": "Reverse proxy"},
+    {"name": "ipapi.co", "purpose": "Geolocation lookup"}
+  ],
+  "api_endpoints": [
+    {"path": "/api/v1/activate", "method": "POST", "auth": "purchase_code"},
+    {"path": "/api/v1/validate", "method": "POST", "auth": "jwt_token"},
+    {"path": "/api/v1/heartbeat", "method": "POST", "auth": "jwt_token"},
+    {"path": "/api/v1/status/{purchase_code}", "method": "GET", "auth": "none"},
+    {"path": "/api/v1/public_key", "method": "GET", "auth": "none"},
+    {"path": "/health", "method": "GET", "auth": "none"}
+  ]
+}
