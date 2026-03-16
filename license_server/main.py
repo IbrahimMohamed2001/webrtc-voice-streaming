@@ -63,6 +63,12 @@ class ActivationRequest(BaseModel):
         return v
 
 
+class AdminCreateLicenseRequest(BaseModel):
+    email: EmailStr
+    purchase_code: str
+    duration_days: int = 365
+
+
 class ValidationRequest(BaseModel):
     token: str
     hardware_id: str
@@ -137,65 +143,130 @@ async def startup_event():
     Base.metadata.create_all(engine)
 
 
+@app.post("/api/v1/admin/licenses", status_code=201)
+async def admin_create_license(
+    request: AdminCreateLicenseRequest, db: Session = Depends(get_db)
+):
+    """Admin-only: pre-create a pending license for a customer.
+    The add-on will bind its hardware on first activation."""
+    existing = (
+        db.query(License)
+        .filter(
+            (License.user_email == request.email)
+            | (License.purchase_code == request.purchase_code)
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            409,
+            detail=f"A license already exists for that email or purchase code (status: {existing.status})",
+        )
+
+    license = License(
+        user_email=request.email,
+        purchase_code=request.purchase_code,
+        # hardware fields left NULL until the device activates
+        expires_at=datetime.utcnow() + timedelta(days=request.duration_days),
+        status="pending",
+        activation_count=0,
+    )
+    db.add(license)
+    db.commit()
+    db.refresh(license)
+
+    logger.info(f"Admin pre-created license: {request.email} / {request.purchase_code}")
+
+    return {
+        "success": True,
+        "message": "License created. Customer can now activate on their device.",
+        "email": license.user_email,
+        "purchase_code": license.purchase_code,
+        "expires_at": license.expires_at.isoformat(),
+        "status": license.status,
+    }
+
+
 @app.post("/api/v1/activate")
 async def activate_license(
     request: ActivationRequest, req: Request, db: Session = Depends(get_db)
 ):
+    """Device-side: bind hardware to a pre-approved pending license.
+    Self-registration is NOT permitted — admin must create the record first."""
+
+    # ── Check if this hardware is already bound somewhere ──
     existing_hw = (
         db.query(License).filter(License.hardware_id == request.hardware_id).first()
     )
-
     if existing_hw:
         raise HTTPException(
             409,
             detail=f"This hardware is already activated for {existing_hw.user_email}",
         )
 
-    existing_email = (
+    # ── Look up the admin-created pending record ──
+    pending = (
         db.query(License)
-        .filter(License.user_email == request.email, License.status == "active")
+        .filter(
+            License.user_email == request.email,
+            License.purchase_code == request.purchase_code,
+            License.status == "pending",
+        )
         .first()
     )
 
-    if existing_email:
+    if not pending:
+        # Check if there's an active one (restart scenario)
+        active = (
+            db.query(License)
+            .filter(
+                License.user_email == request.email,
+                License.purchase_code == request.purchase_code,
+                License.status == "active",
+            )
+            .first()
+        )
+        if active:
+            raise HTTPException(
+                409,
+                detail=f"This hardware is already activated for {active.user_email}",
+            )
+        # No record at all — reject self-registration
         raise HTTPException(
-            409,
-            detail="This email already has an active license. Contact support for device transfer.",
+            403,
+            detail="No pending license found for this email and purchase code. "
+                   "Contact your administrator to have a license created first.",
         )
 
+    # ── Bind hardware to the pending record ──
     token = token_gen.generate_license_token(
         user_email=request.email,
         hardware_id=request.hardware_id,
         purchase_code=request.purchase_code,
-        duration_days=365,
+        duration_days=max(
+            1, (pending.expires_at - datetime.utcnow()).days
+        ),
     )
 
-    license = License(
-        user_email=request.email,
-        purchase_code=request.purchase_code,
-        hardware_id=request.hardware_id,
-        hardware_components=request.hardware_components,
-        token=token,
-        issued_at=datetime.utcnow(),
-        expires_at=datetime.utcnow() + timedelta(days=365),
-        status="active",
-        activation_count=1,
-        created_ip=req.client.host,
-        addon_version="1.0.0",
-    )
+    pending.hardware_id = request.hardware_id
+    pending.hardware_components = request.hardware_components
+    pending.token = token
+    pending.issued_at = datetime.utcnow()
+    pending.status = "active"
+    pending.activation_count = 1
+    pending.created_ip = req.client.host
 
-    db.add(license)
     db.commit()
-    db.refresh(license)
+    db.refresh(pending)
 
     logger.info(
-        f"New license activated: {request.email} | HW: {request.hardware_id[:16]}..."
+        f"License activated: {request.email} | HW: {request.hardware_id[:16]}..."
     )
 
     return {
         "success": True,
         "token": token,
-        "expires_at": license.expires_at.isoformat(),
+        "expires_at": pending.expires_at.isoformat(),
         "message": "License activated successfully",
     }
 

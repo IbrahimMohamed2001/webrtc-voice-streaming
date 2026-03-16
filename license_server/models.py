@@ -25,16 +25,16 @@ class License(Base):
     user_email = Column(String(255), unique=True, nullable=False, index=True)
     purchase_code = Column(String(255), unique=True, nullable=False)
 
-    hardware_id = Column(String(128), unique=True, nullable=False, index=True)
-    hardware_components = Column(JSONB)
+    hardware_id = Column(String(128), unique=True, nullable=True, index=True)
+    hardware_components = Column(JSONB, nullable=True)
 
-    token = Column(Text, unique=True, nullable=False)
+    token = Column(Text, unique=True, nullable=True)
 
     issued_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     last_validated = Column(DateTime)
 
-    status = Column(String(20), default="active", nullable=False)
+    status = Column(String(20), default="pending", nullable=False)
     activation_count = Column(Integer, default=0)
 
     warning_count = Column(Integer, default=0)

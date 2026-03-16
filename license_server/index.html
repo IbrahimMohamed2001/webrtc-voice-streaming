@@ -258,6 +258,10 @@
         background: rgba(34, 197, 94, 0.15);
         color: var(--success);
       }
+      .badge-pending {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--warning);
+      }
       .badge-suspended {
         background: rgba(239, 68, 68, 0.15);
         color: var(--danger);
@@ -267,8 +271,8 @@
         color: var(--muted);
       }
       .badge-expired {
-        background: rgba(245, 158, 11, 0.15);
-        color: var(--warning);
+        background: rgba(100, 116, 139, 0.15);
+        color: var(--muted);
       }
       .badge-healthy {
         background: rgba(34, 197, 94, 0.15);
@@ -603,39 +607,30 @@
   <body>
     <div id="toast-container"></div>
 
-    <!-- Modal: Activate License -->
+    <!-- Modal: Create License (Admin) -->
     <div class="modal-overlay hidden" id="modal-activate">
       <div class="modal">
-        <h3>🔑 Activate New License</h3>
+        <h3>🔑 Create New License</h3>
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 14px">
+          Pre-approve a license for a customer. They will bind their hardware when they install the add-on.
+        </p>
         <div class="form-grid">
           <div class="form-group">
-            <label>Email *</label>
-            <input id="act-email" type="email" placeholder="user@example.com" />
+            <label>Customer Email *</label>
+            <input id="act-email" type="email" placeholder="customer@example.com" />
           </div>
           <div class="form-group">
             <label>Purchase Code *</label>
             <input id="act-code" type="text" placeholder="ABC-123-XYZ" />
           </div>
-          <div class="form-group">
-            <label>Hardware ID *</label>
-            <input id="act-hwid" type="text" placeholder="SHA256 hardware fingerprint" />
-          </div>
-          <div class="form-group">
-            <label>Hostname</label>
-            <input id="act-hostname" type="text" placeholder="machine-hostname" />
-          </div>
-          <div class="form-group">
-            <label>MAC Address</label>
-            <input id="act-mac" type="text" placeholder="00:11:22:33:44:55" />
-          </div>
-          <div class="form-group">
-            <label>Machine ID</label>
-            <input id="act-machineid" type="text" placeholder="machine-id-value" />
+          <div class="form-group full">
+            <label>Duration (days) — default 365</label>
+            <input id="act-days" type="number" placeholder="365" value="365" min="1" />
           </div>
         </div>
         <div class="form-actions">
           <button class="btn btn-ghost" onclick="closeModal('modal-activate')">Cancel</button>
-          <button class="btn btn-primary" onclick="activateLicense()">Activate License</button>
+          <button class="btn btn-primary" onclick="createLicense()">Create License</button>
         </div>
       </div>
     </div>
@@ -1207,38 +1202,31 @@
         renderLicenseTable(filtered, document.getElementById("licenses-table"));
       }
 
-      /* ─── Activate License ─── */
-      async function activateLicense() {
+      /* ─── Create License (Admin) ─── */
+      async function createLicense() {
         const email = document.getElementById("act-email").value.trim();
         const code = document.getElementById("act-code").value.trim();
-        const hwid = document.getElementById("act-hwid").value.trim();
-        const hostname = document.getElementById("act-hostname").value.trim();
-        const mac = document.getElementById("act-mac").value.trim();
-        const machineId = document.getElementById("act-machineid").value.trim();
+        const days = parseInt(document.getElementById("act-days").value) || 365;
 
-        if (!email || !code || !hwid) {
-          toast("Email, Purchase Code and Hardware ID are required.", "error");
+        if (!email || !code) {
+          toast("Email and Purchase Code are required.", "error");
           return;
         }
 
-        const body = {
-          email,
-          purchase_code: code,
-          hardware_id: hwid,
-          hardware_components: { machine_id: machineId || "unknown", mac: mac || "00:00:00:00:00:00", hostname: hostname || "unknown" },
-        };
+        const data = await api("/api/v1/admin/licenses", {
+          method: "POST",
+          body: JSON.stringify({ email, purchase_code: code, duration_days: days }),
+        });
 
-        const data = await api("/api/v1/activate", { method: "POST", body: JSON.stringify(body) });
-
-        if (data.success && data.token) {
-          toast("License activated successfully!", "success");
+        if (data.success) {
+          toast(`License created for ${email}! Customer can now activate on their device.`, "success");
           closeModal("modal-activate");
-          currentToken = data.token;
-          document.getElementById("modal-token-content").textContent = data.token;
-          openModal("modal-token");
+          document.getElementById("act-email").value = "";
+          document.getElementById("act-code").value = "";
+          document.getElementById("act-days").value = "365";
           loadLicenses();
         } else {
-          toast(data.detail || data.message || "Activation failed.", "error");
+          toast(data.detail || data.message || "Failed to create license.", "error");
         }
       }
 
