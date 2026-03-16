@@ -459,7 +459,7 @@ python webrtc_server_relay.py
 **Step 2:** Open browser to test page
 
 ```
-http://localhost:8081/stream/latest.mp3
+http://localhost:${AUDIO_PORT:-8081}/stream/latest.mp3
 ```
 
 **Expected:** "Waiting for Audio Stream..." page with spinner
@@ -467,6 +467,30 @@ http://localhost:8081/stream/latest.mp3
 **Step 3:** Connect a sender (requires WebRTC client)
 
 **Step 4:** Refresh browser - should start playing audio
+
+---
+
+## Modifying the Configured Port
+
+The backend streams standalone audio via a separate HTTP port that defaults to `8081`. This has been decoupled from the primary application server to prevent conflicts and ensure stable HTTP streaming.
+
+**If running as a Home Assistant Add-on:**
+
+1. Navigate to **Settings** > **Add-ons**.
+2. Click on the **Voice Streaming Backend** add-on.
+3. Switch to the **Configuration** tab.
+4. You will see an **audio_port** setting (default `8081`). Change this to whatever port you wish to use dynamically.
+5. Save and restart the add-on.
+
+**If running manually or via Docker:**
+Override the port by setting the `AUDIO_PORT` environment variable:
+
+```bash
+export AUDIO_PORT=9090
+python webrtc_server_relay.py
+```
+
+_Note: If changing this on Docker, remember to modify the `-p` flag bindings as well._
 
 ---
 
