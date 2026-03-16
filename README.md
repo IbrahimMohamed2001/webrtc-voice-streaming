@@ -48,6 +48,16 @@ WebRTC **requires** a secure context (HTTPS) for microphone access.
 - **Option B (Ingress)**: If you use Home Assistant Ingress, the backend works automatically over HA's secure channel.
 - **Option C (Local LAN)**: If you access via IP, the add-on generates a local CA. Visit the add-on's web UI (port 8080 by default) to download and install the CA on your device.
 
+### 2. Add Dashboard Resource
+
+To use the custom cards, you must add the resource to your Home Assistant Dashboard:
+
+1.  Navigate to **Settings** > **Dashboards**.
+2.  Click the **dots** (top-right) > **Resources**.
+3.  Click **Add Resource**.
+4.  Enter the URL: `/local/voice_streaming_backend/dist/voice-streaming-card-dashboard.js`
+5.  Select **JavaScript Module** as the resource type and click **Create**.
+
 ## Usage
 
 ### Dashboard Integration
