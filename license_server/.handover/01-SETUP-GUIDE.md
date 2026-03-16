@@ -3,8 +3,7 @@
 ## Prerequisites
 
 - Docker & Docker Compose
-- Port 8000 available (API)
-- Port 80/443 available (Nginx)
+- Ports 80/443 available (Nginx)
 
 ## Zero-to-Hero Setup
 
@@ -14,17 +13,7 @@
 cd /mnt/Files/Programming/playground/webrtc_backend
 ```
 
-### 2. Generate SSL Certificates
-
-```bash
-# For development (self-signed)
-bash generate-ssl.sh
-
-# For production (Let's Encrypt)
-certbot certonly --nginx -d license.yourdomain.com
-```
-
-### 3. Configure Environment (Production)
+### 2. Configure Environment (Production)
 
 ```bash
 # Copy and edit environment
@@ -35,68 +24,67 @@ cp .env.example .env
 # - ALLOWED_ORIGINS=https://yourdomain.com
 ```
 
-### 4. Build & Start
+### 3. Build & Start
 
 ```bash
-# Build images
-docker-compose build
-
-# Start services
-docker-compose up -d
+# Build and start all services
+docker-compose up -d --build
 
 # Check status
-docker-compose ps
+docker compose ps
 ```
 
-### 5. Verify
+### 4. Verify
 
 ```bash
-# Health check
-curl http://localhost:8000/health
+# Health check (self-signed cert, -k to skip verification)
+curl -k https://localhost:8000/health
 
-# Should return: {"status":"healthy","database":"healthy"}
+# Should return: {"status":"healthy","database":"healthy","timestamp":"..."}
 ```
 
-### 6. Run Tests
+### 5. Access Dashboard
 
-```bash
-# Clean database first
-docker-compose exec db psql -U license_user -d webrtc_licenses -c "TRUNCATE licenses, validation_logs, session_states, security_incidents CASCADE;"
-
-# Run tests
-./test_license_server.sh
-./test_addon_simulation.sh
-```
+Open https://localhost in your browser (accept self-signed cert warning).
 
 ## Service URLs
 
 | Service | URL |
 |---------|-----|
-| API | http://localhost:8000 |
+| Dashboard | https://localhost/ |
 | Nginx HTTP | http://localhost:80 |
 | Nginx HTTPS | https://localhost:443 |
 | PostgreSQL | localhost:5432 |
-| Redis | localhost:6379 |
 
 ## Database Connection
 
 ```bash
 # Connect to database
-docker-compose exec db psql -U license_user -d webrtc_licenses
+docker compose exec db psql -U license_user -d webrtc_licenses
 
 # View tables
-docker-compose exec db psql -U license_user -d webrtc_licenses -c "\dt"
+docker compose exec db psql -U license_user -d webrtc_licenses -c "\dt"
 
 # View licenses
-docker-compose exec db psql -U license_user -d webrtc_licenses -c "SELECT * FROM licenses;"
+docker compose exec db psql -U license_user -d webrtc_licenses -c "SELECT * FROM licenses;"
 ```
 
 ## Stop Services
 
 ```bash
-docker-compose down        # Stop
-docker-compose down -v    # Stop and remove volumes
+docker compose down        # Stop
+docker compose down -v     # Stop and remove volumes
 ```
+
+## SSL Certificates
+
+SSL certificates are **automatically generated** during the Docker build process:
+
+1. The `license_server/Dockerfile` runs `openssl` to create self-signed certs
+2. Certs are saved to `/keys/cert.pem` and `/keys/key.pem`
+3. A Docker volume `license_keys` shares these with nginx
+
+For production with Let's Encrypt, update `nginx/conf.d/license-server.conf` to point to real certificates.
 
 ## Troubleshooting
 
@@ -104,17 +92,17 @@ docker-compose down -v    # Stop and remove volumes
 
 ```bash
 # Check logs
-docker-compose logs license_server
+docker compose logs license_server
 
 # Check database connectivity
-docker-compose exec license_server python3 -c "from sqlalchemy import create_engine; engine = create_engine('postgresql://license_user:license_pass@db:5432/webrtc_licenses'); engine.connect()"
+docker compose exec license_server python3 -c "from sqlalchemy import create_engine; engine = create_engine('postgresql://license_user:license_pass@db:5432/webrtc_licenses'); engine.connect()"
 ```
 
-### SSL Certificate Issues
+### Nginx fails with SSL certificate error
 
 ```bash
-# Regenerate self-signed certs
-rm nginx/ssl/*.pem
-bash generate-ssl.sh
-docker-compose restart nginx
+# Rebuild with fresh volume to regenerate certs
+docker compose down
+docker volume rm webrtc_backend_license_keys
+docker compose up -d --build
 ```

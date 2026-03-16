@@ -9,15 +9,26 @@
 **Fix**: 
 ```bash
 # Backup private key
-docker-compose exec license_server cat /keys/private_key.pem > backup/private_key.pem
+docker compose exec license_server cat /keys/private_key.pem > backup/private_key.pem
 
-# Or mount host directory
-# docker-compose.yml:
+# Or mount host directory in docker-compose.yml:
 # volumes:
 #   - ./keys:/keys
 ```
 
-### 2. Default Credentials
+### 2. SSL Certificate Volume
+
+**Issue**: SSL certs stored in named volume, not rebuilt on container restart
+**Impact**: If volume exists from previous build, new certs won't be generated
+**Fix**:
+```bash
+# Remove volume to regenerate certs
+docker compose down
+docker volume rm webrtc_backend_license_keys
+docker compose up -d --build
+```
+
+### 3. Default Credentials
 
 **Issue**: Default DB credentials in code
 **Impact**: Security vulnerability
@@ -27,7 +38,7 @@ docker-compose exec license_server cat /keys/private_key.pem > backup/private_ke
 DATABASE_URL=postgresql://secure_user:secure_pass@db:5432/webrtc_licenses
 ```
 
-### 3. CORS Wildcard
+### 4. CORS Wildcard
 
 **Issue**: ALLOWED_ORIGINS defaults to "*"
 **Impact**: Security vulnerability in production
@@ -38,17 +49,11 @@ ALLOWED_ORIGINS=https://yourdomain.com
 
 ## Warnings
 
-### 4. Hardware Match Threshold
+### 5. Hardware Match Threshold
 
 **Issue**: 60% match allows some hardware changes
 **Impact**: Could be exploited with partial hardware swaps
 **Fix**: Adjust threshold in `hw_fingerprint.py` if needed
-
-### 5. Redis Not Used
-
-**Issue**: Redis service defined but not actively used
-**Impact**: Wasted resources
-**Fix**: Implement rate limiting or caching with Redis
 
 ### 6. Geolocation External API
 
@@ -76,12 +81,6 @@ ALLOWED_ORIGINS=https://yourdomain.com
 **Impact**: Could be abused
 **Fix**: Add rate limiting in Nginx
 
-### 10. Hardcoded Add-on Version
-
-**Issue**: Version "1.0.0" hardcoded in token
-**Impact**: Need code change to update version
-**Fix**: Pass version in request
-
 ## Testing Notes
 
 ### Hardware Components Must Match
@@ -99,5 +98,24 @@ When testing validation, hardware_components in telemetry MUST match stored comp
 
 Run between tests:
 ```bash
-docker-compose exec db psql -U license_user -d webrtc_licenses -c "TRUNCATE licenses, validation_logs, session_states, security_incidents CASCADE;"
+docker compose exec db psql -U license_user -d webrtc_licenses -c "TRUNCATE licenses, validation_logs, session_states, security_incidents CASCADE;"
+```
+
+### Testing Pending Activation Flow
+
+```bash
+# Step 1: Create pending license
+curl -X POST https://localhost:8000/api/v1/admin/licenses \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","purchase_code":"TEST-001","duration_days":365}'
+
+# Step 2: Simulate add-on activation (will get PENDING_ token)
+curl -X POST https://localhost:8000/api/v1/activate \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","purchase_code":"TEST-001","hardware_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","hardware_components":{}}'
+
+# Step 3: Admin activates via dashboard or API
+curl -X PATCH https://localhost:8000/api/v1/admin/licenses/TEST-001 \
+  -H "Content-Type: application/json" \
+  -d '{"action":"activate"}'
 ```

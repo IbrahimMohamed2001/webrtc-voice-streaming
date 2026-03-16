@@ -2,29 +2,29 @@
 
 ## Why This Design?
 
-### 1. Hardware Fingerprinting
+### 1. Admin-Gated Activation
+
+**Decision**: Add-on cannot self-activate; requires admin approval
+**Reason**: Prevents unauthorized use even if someone discovers server URL
+**Trade-off**: Additional admin step required; more secure
+
+### 2. Hardware Fingerprinting
 
 **Decision**: Use multi-component hardware fingerprinting
 **Reason**: Single component (e.g., MAC address) can be spoofed. Combining machine-id, MAC, CPU serial, disk UUID, and hostname provides stronger binding.
-**Trade-off**: May break if user更换 major hardware components
+**Trade-off**: May break if user changes major hardware components
 
-### 2. RSA-4096 Keys
+### 3. RSA-4096 Keys
 
 **Decision**: Use RSA-4096 for token signing
-**Reason**: Provides strong security for license tokens. 2048 would also work but 4096 is future-proof.
-**Trade-off**: Key generation is slow, but happens only once
+**Reason**: Provides strong security for license tokens
+**Trade-off**: Key generation is slow, but happens only once at build
 
-### 3. JWT with Hardware Checksum
+### 4. JWT with Hardware Checksum
 
 **Decision**: Add SHA256 checksum to JWT payload
-**Reason**: Prevents token transfer between devices. Even if JWT is valid, checksum ensures hardware binding.
+**Reason**: Prevents token transfer between devices
 **Trade-off**: Slightly more complex validation
-
-### 4. Auto-Suspend on Hardware Mismatch
-
-**Decision**: Immediately suspend on critical hardware mismatch
-**Reason**: Prevent license sharing attacks
-**Trade-off**: May inconvenience users with legitimate hardware changes (need manual support)
 
 ### 5. 60% Hardware Match Threshold
 
@@ -38,15 +38,20 @@
 **Reason**: Production-grade, supports concurrent connections, better indexing
 **Trade-off**: Requires more resources than SQLite
 
-### 7. Gunicorn with Uvicorn Workers
+### 7. Unlimited Licenses
 
-**Decision**: Use Gunicorn with Uvicorn workers
-**Reason**: Production-grade process management with async support
-**Trade-off**: More complex than pure Uvicorn
+**Decision**: Support licenses with no expiration (NULL expires_at)
+**Reason**: Some customers prefer lifetime licenses
+**Trade-off**: Must track manually in billing system
 
-## Future Considerations
+### 8. Self-Signed SSL in Dockerfile
 
-- Redis integration for rate limiting and caching
-- Payment provider webhook integration (Gumroad/Stripe/LemonSqueezy)
-- License transfer functionality
-- Admin dashboard
+**Decision**: Generate SSL certs at container build time
+**Reason**: Zero-config setup; certificates shared via Docker volume
+**Trade-off**: Must regenerate volume for new certs; use Let's Encrypt for production
+
+### 9. Modern Dashboard UI
+
+**Decision**: Custom HTML/CSS/JS with modals instead of native prompts
+**Reason**: Better UX, consistent with modern web apps
+**Trade-off**: More code to maintain than simple server-side rendering

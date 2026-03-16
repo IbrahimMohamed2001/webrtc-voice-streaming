@@ -2,15 +2,14 @@
 
 ## What This Is
 
-A production-ready license validation server for the WebRTC Voice Streaming add-on. Provides hardware-based license activation, validation, and security monitoring.
+A production-ready license validation server for the WebRTC Voice Streaming add-on. Provides hardware-based license activation with **admin-controlled approval flow**, validation, and security monitoring.
 
 ## Tech Stack
 
 - **Python 3.11** - Runtime
 - **FastAPI** - Web framework
 - **PostgreSQL** - Database
-- **Redis** - Session cache (available but not actively used)
-- **Nginx** - Reverse proxy
+- **Nginx** - Reverse proxy with SSL termination
 - **Docker** - Containerization
 
 ## Quick Start
@@ -20,28 +19,29 @@ A production-ready license validation server for the WebRTC Voice Streaming add-
 docker-compose up -d
 
 # Check health
-curl http://localhost:8000/health
+curl -k https://localhost:8000/health
 
-# Activate license
-curl -X POST http://localhost:8000/api/v1/activate \
+# Create a pending license (admin)
+curl -X POST https://localhost:8000/api/v1/admin/licenses \
   -H "Content-Type: application/json" \
-  -d '{"email":"you@test.com","purchase_code":"ABC123","hardware_id":"...","hardware_components":{}}'
+  -d '{"email":"you@test.com","purchase_code":"ABC123","duration_days":365}'
 ```
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `main.py` | FastAPI application |
+| `main.py` | FastAPI application (all endpoints) |
 | `models.py` | SQLAlchemy database models |
 | `token_generator.py` | RSA key & JWT token generation |
 | `hw_fingerprint.py` | Hardware ID generation |
-| `Dockerfile` | Container image |
-| `docker-compose.yml` | Service orchestration |
+| `index.html` | Admin dashboard UI |
+| `Dockerfile` | Container image (generates SSL certs) |
 
-## Test Scripts
+## Key URLs
 
-```bash
-./test_license_server.sh      # API tests
-./test_addon_simulation.sh    # Add-on simulation
-```
+| Service | URL |
+|---------|-----|
+| Dashboard | https://localhost/ |
+| API | https://localhost:8000 |
+| Health | https://localhost:8000/health |

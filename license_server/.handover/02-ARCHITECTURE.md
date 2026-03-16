@@ -5,22 +5,22 @@
 ```
 ┌─────────────────┐     HTTPS      ┌─────────────────┐
 │  Add-on/Client │ ─────────────> │  Nginx Reverse  │
-│                 │                │     Proxy       │
+│                 │   (port 443)   │     Proxy       │
 └─────────────────┘                └────────┬────────┘
-                                             │
-                                             ▼
-                                    ┌─────────────────┐
-                                    │  FastAPI App    │
-                                    │  (Gunicorn)     │
-                                    └────────┬────────┘
-                                             │
-                    ┌──────────────────────────┼──────────────────────────┐
-                    │                          │                          │
-                    ▼                          ▼                          ▼
-           ┌────────────────┐      ┌────────────────┐      ┌────────────────┐
-           │   PostgreSQL   │      │     Redis      │      │  External API  │
-           │   (licenses)   │      │   (sessions)   │      │   (ipapi.co)  │
-           └────────────────┘      └────────────────┘      └────────────────┘
+                                              │
+                                              ▼
+                                     ┌─────────────────┐
+                                     │  FastAPI App    │
+                                     │  (Gunicorn)     │
+                                     └────────┬────────┘
+                                              │
+                     ┌──────────────────────────┼──────────────────────────┐
+                     │                          │                          │
+                     ▼                          ▼                          ▼
+            ┌────────────────┐      ┌────────────────┐      ┌────────────────┐
+            │   PostgreSQL   │      │   SSL Certs    │      │  External API  │
+            │   (licenses)  │      │  (/keys vol)    │      │   (ipapi.co)  │
+            └────────────────┘      └────────────────┘      └────────────────┘
 ```
 
 ## Components
@@ -58,26 +58,46 @@ Collects multiple components:
 
 **Final HWID**: SHA256 hash of sorted components
 
-### 5. Security Logic
+### 5. Admin Dashboard (`index.html`)
 
-- **Hardware Match Threshold**: 60% (allows minor changes)
-- **Concurrent Sessions**: Warn after 1, suspend after 3
-- **Auto-Suspend**: Critical incidents (hardware_mismatch)
-- **Session Timeout**: 30 minutes
+- Modern dark-themed HTML/CSS/JS UI
+- Custom modals (no native browser prompts)
+- Real-time license management
+
+### 6. SSL Certificate Generation
+
+- Self-signed certs generated in Dockerfile at build time
+- Shared via `license_keys` Docker volume to nginx
+
+## License Status Flow
+
+```
+pending → (add-on registers hardware) → pending_activation → (admin clicks Activate) → active
+                                                                      ↓
+                                      suspended ← (security incident / admin action)
+                                      expired ← (expires_at reached)
+                                      revoked ← (admin action)
+```
 
 ## API Flow
 
-### Activation Flow
+### Activation Flow (Two-Step)
 
 ```
+Step 1 - Add-on Activation:
 1. Client sends: email, purchase_code, hardware_id, hardware_components
-2. Server checks:
-   - Hardware not already activated?
-   - Email doesn't have active license?
-3. Generate JWT token with RSA signature
-4. Add hardware checksum
-5. Store in database with status='active'
-6. Return token to client
+2. Server finds pending license, records hardware_id
+3. Returns: {token: "PENDING_<hwid>", status: "pending_activation"}
+
+Step 2 - Admin Approval:
+1. Admin clicks "Activate" in dashboard
+2. Server generates RSA-signed JWT token
+3. Returns: {success: true, new_status: "active"}
+
+Step 3 - Add-on Validation:
+1. Add-on calls /validate with pending token
+2. Server detects PENDING_ prefix, exchanges for real token
+3. Returns: {valid: true, token: "<real_jwt>", expires_at: "..."}
 ```
 
 ### Validation Flow
@@ -96,15 +116,10 @@ Collects multiple components:
 5. Return valid=true/false
 ```
 
-## Data Flow
+## Unlimited Licenses
 
-```
-Request → Nginx → FastAPI → Token Verification → DB Query → Response
-                                       ↓
-                              Hardware Validation
-                                       ↓
-                              Security Incident Check
-```
+- `expires_at` column is nullable (NULL = unlimited)
+- Set via `unlimited: true` when creating license or admin action
 
 ## Environment Variables
 
