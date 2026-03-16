@@ -28,8 +28,12 @@ RUN apk update && \
         cargo \
         musl-dev \
         linux-headers \
-        cmake && \
-    pip install --no-cache-dir --break-system-packages -r requirements.txt && \
+        cmake \
+        g++ \
+        zlib-dev \
+        jpeg-dev && \
+    pip install --no-cache-dir --break-system-packages --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --break-system-packages --prefer-binary -r requirements.txt && \
     apk del .build-deps && \
     rm -rf /var/cache/apk/*
 
