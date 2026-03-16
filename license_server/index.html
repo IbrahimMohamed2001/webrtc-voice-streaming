@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>License Server Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <style>
-      /* ── Reset & Base ── */
+      /* ── Modern Reset & Base ── */
       *,
       *::before,
       *::after {
@@ -14,148 +17,229 @@
         padding: 0;
       }
       :root {
-        --bg: #0f1117;
-        --surface: #1a1d27;
-        --surface2: #222637;
-        --border: #2e3347;
-        --primary: #6c8aff;
-        --primary-d: #4f6de0;
-        --success: #22c55e;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --info: #38bdf8;
-        --text: #e2e8f0;
-        --muted: #64748b;
-        --radius: 10px;
-        --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        --bg-primary: #0a0b0f;
+        --bg-secondary: #111218;
+        --bg-tertiary: #181a23;
+        --bg-card: #13151c;
+        --bg-hover: #1c1e28;
+        --border-subtle: #232730;
+        --border-focus: #3b82f6;
+        --accent-blue: #3b82f6;
+        --accent-blue-hover: #2563eb;
+        --accent-cyan: #06b6d4;
+        --accent-emerald: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #f43f5e;
+        --accent-violet: #8b5cf6;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 14px;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+        --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      html {
+        font-size: 15px;
+        scroll-behavior: smooth;
       }
       body {
-        background: var(--bg);
-        color: var(--text);
-        font-family: "Inter", system-ui, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: var(--font-sans);
         min-height: 100vh;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border-subtle);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
       }
 
       /* ── Layout ── */
       .layout {
         display: grid;
-        grid-template-columns: 220px 1fr;
+        grid-template-columns: 260px 1fr;
         min-height: 100vh;
       }
 
       /* ── Sidebar ── */
       .sidebar {
-        background: var(--surface);
-        border-right: 1px solid var(--border);
-        padding: 24px 0;
+        background: var(--bg-secondary);
+        border-right: 1px solid var(--border-subtle);
+        padding: 20px 0;
         position: sticky;
         top: 0;
         height: 100vh;
         display: flex;
         flex-direction: column;
+        overflow-y: auto;
       }
       .logo {
-        padding: 0 20px 24px;
-        border-bottom: 1px solid var(--border);
+        padding: 0 24px 24px;
+        border-bottom: 1px solid var(--border-subtle);
+        margin-bottom: 8px;
       }
       .logo h1 {
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 700;
-        color: var(--primary);
-        letter-spacing: 0.5px;
+        color: var(--text-primary);
+        letter-spacing: -0.3px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .logo h1::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+        border-radius: 2px;
       }
       .logo p {
-        font-size: 11px;
-        color: var(--muted);
-        margin-top: 3px;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 4px;
+        padding-left: 16px;
       }
       .nav {
-        padding: 16px 0;
+        padding: 12px 0;
         flex: 1;
+      }
+      .nav-section {
+        padding: 8px 16px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-top: 8px;
       }
       .nav-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 20px;
+        gap: 12px;
+        padding: 10px 24px;
         cursor: pointer;
-        font-size: 13.5px;
-        color: var(--muted);
-        transition: all 0.15s;
+        font-size: 14px;
+        color: var(--text-secondary);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         border-left: 3px solid transparent;
+        margin: 2px 0;
       }
       .nav-item:hover {
-        background: var(--surface2);
-        color: var(--text);
+        background: var(--bg-hover);
+        color: var(--text-primary);
       }
       .nav-item.active {
-        color: var(--primary);
-        border-left-color: var(--primary);
-        background: rgba(108, 138, 255, 0.08);
+        color: var(--accent-blue);
+        border-left-color: var(--accent-blue);
+        background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
       }
       .nav-item .icon {
-        width: 16px;
+        width: 18px;
         text-align: center;
+        font-size: 15px;
       }
       .server-status {
-        margin: 0 12px 16px;
-        padding: 10px 12px;
-        border-radius: var(--radius);
-        background: var(--surface2);
-        border: 1px solid var(--border);
-        font-size: 12px;
+        margin: 0 16px 16px;
+        padding: 14px 16px;
+        border-radius: var(--radius-md);
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        font-size: 13px;
+      }
+      .server-status-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
       }
       .server-status .dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         display: inline-block;
-        margin-right: 6px;
       }
       .dot-green {
-        background: var(--success);
-        box-shadow: 0 0 6px var(--success);
+        background: var(--accent-emerald);
+        box-shadow: 0 0 8px var(--accent-emerald);
       }
       .dot-red {
-        background: var(--danger);
-        box-shadow: 0 0 6px var(--danger);
+        background: var(--accent-rose);
+        box-shadow: 0 0 8px var(--accent-rose);
       }
       .dot-yellow {
-        background: var(--warning);
-        box-shadow: 0 0 6px var(--warning);
+        background: var(--accent-amber);
+        box-shadow: 0 0 8px var(--accent-amber);
       }
 
       /* ── Main ── */
       .main {
-        padding: 28px;
+        padding: 28px 32px;
         overflow-y: auto;
+        background:
+          radial-gradient(ellipse at 20% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.04) 0%, transparent 50%), var(--bg-primary);
       }
       .page {
         display: none;
+        animation: fadeIn 0.25s ease;
       }
       .page.active {
         display: block;
       }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
       .page-header {
-        margin-bottom: 24px;
+        margin-bottom: 28px;
       }
       .page-header h2 {
-        font-size: 20px;
+        font-size: 24px;
         font-weight: 700;
+        letter-spacing: -0.5px;
       }
       .page-header p {
-        font-size: 13px;
-        color: var(--muted);
-        margin-top: 4px;
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-top: 6px;
       }
 
       /* ── Cards ── */
       .card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
         padding: 20px;
-        box-shadow: var(--shadow);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease;
+      }
+      .card:hover {
+        border-color: rgba(59, 130, 246, 0.3);
+        box-shadow: var(--shadow-md);
       }
       .card-header {
         display: flex;
@@ -166,7 +250,10 @@
       .card-header h3 {
         font-size: 14px;
         font-weight: 600;
-        color: var(--text);
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       /* ── Stat Grid ── */
@@ -177,46 +264,90 @@
         margin-bottom: 24px;
       }
       .stat-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 18px 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 20px 24px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s ease;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .stat-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(59, 130, 246, 0.3);
+        box-shadow: var(--shadow-md);
+      }
+      .stat-card:hover::before {
+        opacity: 1;
       }
       .stat-label {
         font-size: 12px;
-        color: var(--muted);
-        margin-bottom: 6px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        font-weight: 500;
       }
       .stat-value {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: 700;
+        letter-spacing: -1px;
+        background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
       .stat-sub {
-        font-size: 11px;
-        color: var(--muted);
-        margin-top: 4px;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
       }
-      .text-green {
-        color: var(--success);
+      .stat-icon {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        opacity: 0.8;
       }
-      .text-red {
-        color: var(--danger);
+      .stat-icon.blue {
+        background: rgba(59, 130, 246, 0.15);
+        color: var(--accent-blue);
       }
-      .text-yellow {
-        color: var(--warning);
+      .stat-icon.green {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--accent-emerald);
       }
-      .text-blue {
-        color: var(--info);
+      .stat-icon.red {
+        background: rgba(244, 63, 94, 0.15);
+        color: var(--accent-rose);
       }
-      .text-primary {
-        color: var(--primary);
+      .stat-icon.cyan {
+        background: rgba(6, 182, 212, 0.15);
+        color: var(--accent-cyan);
       }
 
       /* ── Table ── */
       .table-wrap {
         overflow-x: auto;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-subtle);
       }
       table {
         width: 100%;
@@ -225,126 +356,146 @@
       }
       th {
         text-align: left;
-        padding: 10px 14px;
+        padding: 12px 16px;
         font-size: 11px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--muted);
-        border-bottom: 1px solid var(--border);
-        background: var(--surface2);
+        letter-spacing: 0.6px;
+        color: var(--text-muted);
+        font-weight: 600;
+        background: var(--bg-tertiary);
+        border-bottom: 1px solid var(--border-subtle);
+        position: sticky;
+        top: 0;
       }
       td {
-        padding: 11px 14px;
-        border-bottom: 1px solid rgba(46, 51, 71, 0.5);
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(35, 39, 48, 0.5);
         vertical-align: middle;
+        color: var(--text-secondary);
+      }
+      tr {
+        transition: background 0.15s ease;
       }
       tr:hover td {
-        background: rgba(255, 255, 255, 0.02);
+        background: var(--bg-hover);
       }
       tr:last-child td {
         border-bottom: none;
       }
+      tbody tr {
+        background: var(--bg-card);
+      }
+      tbody tr:nth-child(even) td {
+        background: rgba(19, 21, 28, 0.5);
+      }
+      tbody tr:nth-child(even):hover td {
+        background: var(--bg-hover);
+      }
 
       /* ── Badges ── */
       .badge {
-        display: inline-block;
-        padding: 2px 9px;
-        border-radius: 99px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
         font-size: 11px;
         font-weight: 600;
         text-transform: capitalize;
       }
       .badge-active {
-        background: rgba(34, 197, 94, 0.15);
-        color: var(--success);
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--accent-emerald);
       }
       .badge-pending {
         background: rgba(245, 158, 11, 0.15);
-        color: var(--warning);
+        color: var(--accent-amber);
       }
-      .badge-suspended {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--danger);
+      .badge-suspended,
+      .badge-critical {
+        background: rgba(244, 63, 94, 0.15);
+        color: var(--accent-rose);
       }
-      .badge-revoked {
-        background: rgba(100, 116, 139, 0.15);
-        color: var(--muted);
-      }
+      .badge-revoked,
       .badge-expired {
         background: rgba(100, 116, 139, 0.15);
-        color: var(--muted);
+        color: var(--text-muted);
       }
       .badge-healthy {
-        background: rgba(34, 197, 94, 0.15);
-        color: var(--success);
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--accent-emerald);
       }
       .badge-unhealthy {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--danger);
-      }
-      .badge-critical {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--danger);
+        background: rgba(244, 63, 94, 0.15);
+        color: var(--accent-rose);
       }
       .badge-warning {
         background: rgba(245, 158, 11, 0.15);
-        color: var(--warning);
+        color: var(--accent-amber);
       }
       .badge-info {
-        background: rgba(56, 189, 248, 0.15);
-        color: var(--info);
+        background: rgba(6, 182, 212, 0.15);
+        color: var(--accent-cyan);
       }
 
       /* ── Buttons ── */
       .btn {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
-        padding: 7px 14px;
-        border-radius: 7px;
+        padding: 8px 16px;
+        border-radius: var(--radius-sm);
         font-size: 13px;
         font-weight: 500;
         border: none;
         cursor: pointer;
-        transition: all 0.15s;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        white-space: nowrap;
       }
       .btn-primary {
-        background: var(--primary);
+        background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
         color: #fff;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
       }
       .btn-primary:hover {
-        background: var(--primary-d);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
       }
       .btn-ghost {
-        background: var(--surface2);
-        color: var(--text);
-        border: 1px solid var(--border);
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-subtle);
       }
       .btn-ghost:hover {
-        background: var(--border);
+        background: var(--bg-hover);
+        color: var(--text-primary);
+        border-color: var(--text-muted);
       }
       .btn-danger-ghost {
         background: transparent;
-        color: var(--danger);
-        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: var(--accent-rose);
+        border: 1px solid rgba(244, 63, 94, 0.3);
         font-size: 12px;
-        padding: 4px 10px;
+        padding: 6px 12px;
       }
       .btn-danger-ghost:hover {
-        background: rgba(239, 68, 68, 0.1);
+        background: rgba(244, 63, 94, 0.1);
+        border-color: var(--accent-rose);
       }
       .btn-success-ghost {
         background: transparent;
-        color: var(--success);
-        border: 1px solid rgba(34, 197, 94, 0.4);
+        color: var(--accent-emerald);
+        border: 1px solid rgba(16, 185, 129, 0.3);
         font-size: 12px;
-        padding: 4px 10px;
+        padding: 6px 12px;
       }
       .btn-success-ghost:hover {
-        background: rgba(34, 197, 94, 0.1);
+        background: rgba(16, 185, 129, 0.1);
+        border-color: var(--accent-emerald);
       }
       .btn-sm {
-        padding: 4px 10px;
+        padding: 5px 10px;
         font-size: 12px;
       }
 
@@ -352,70 +503,79 @@
       .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 14px;
+        gap: 16px;
       }
       .form-group {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 6px;
       }
       .form-group.full {
         grid-column: 1/-1;
       }
       label {
         font-size: 12px;
-        color: var(--muted);
+        color: var(--text-muted);
         font-weight: 500;
       }
       input,
       select,
       textarea {
-        background: var(--surface2);
-        border: 1px solid var(--border);
-        color: var(--text);
-        padding: 9px 12px;
-        border-radius: 7px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-primary);
+        padding: 10px 14px;
+        border-radius: var(--radius-sm);
         font-size: 13px;
         outline: none;
-        transition: border-color 0.15s;
+        transition: all 0.2s ease;
+        font-family: inherit;
       }
       input:focus,
       select:focus,
       textarea:focus {
-        border-color: var(--primary);
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
       }
       input::placeholder {
-        color: var(--muted);
+        color: var(--text-muted);
+      }
+      textarea {
+        resize: vertical;
+        min-height: 80px;
       }
       .form-actions {
         display: flex;
         gap: 10px;
-        margin-top: 6px;
+        margin-top: 8px;
         justify-content: flex-end;
       }
 
       /* ── Search Bar ── */
       .search-row {
         display: flex;
-        gap: 10px;
-        margin-bottom: 16px;
+        gap: 12px;
+        margin-bottom: 20px;
         align-items: center;
+        flex-wrap: wrap;
       }
       .search-wrap {
         position: relative;
         flex: 1;
+        min-width: 200px;
       }
       .search-wrap input {
         width: 100%;
-        padding-left: 34px;
+        padding-left: 38px;
       }
       .search-icon {
         position: absolute;
-        left: 10px;
+        left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: var(--muted);
+        color: var(--text-muted);
         font-size: 14px;
+        pointer-events: none;
       }
 
       /* ── Toast ── */
@@ -426,34 +586,34 @@
         z-index: 9999;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
       }
       .toast {
-        background: var(--surface2);
-        border: 1px solid var(--border);
-        padding: 12px 16px;
-        border-radius: var(--radius);
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        padding: 14px 18px;
+        border-radius: var(--radius-md);
         font-size: 13px;
-        min-width: 260px;
-        box-shadow: var(--shadow);
+        min-width: 280px;
+        box-shadow: var(--shadow-lg);
         display: flex;
         align-items: center;
-        gap: 10px;
-        animation: slideIn 0.2s ease;
+        gap: 12px;
+        animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .toast.success {
-        border-left: 3px solid var(--success);
+        border-left: 3px solid var(--accent-emerald);
       }
       .toast.error {
-        border-left: 3px solid var(--danger);
+        border-left: 3px solid var(--accent-rose);
       }
       .toast.info {
-        border-left: 3px solid var(--info);
+        border-left: 3px solid var(--accent-cyan);
       }
       @keyframes slideIn {
         from {
           opacity: 0;
-          transform: translateX(20px);
+          transform: translateX(30px);
         }
         to {
           opacity: 1;
@@ -465,72 +625,101 @@
       .modal-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.65);
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(4px);
         z-index: 1000;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 20px;
+        animation: fadeIn 0.2s ease;
       }
       .modal-overlay.hidden {
         display: none;
       }
       .modal {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 24px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 28px;
         width: 100%;
-        max-width: 500px;
-        box-shadow: var(--shadow);
+        max-width: 520px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+        animation: modalSlide 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      @keyframes modalSlide {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
       .modal h3 {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 700;
-        margin-bottom: 16px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .modal p {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
       }
 
       /* ── Code Block ── */
       .code-block {
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: 7px;
-        padding: 12px;
-        font-family: monospace;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        padding: 14px;
+        font-family: "JetBrains Mono", "Fira Code", monospace;
         font-size: 12px;
-        color: #94a3b8;
+        color: #a5b6cf;
         overflow-x: auto;
         white-space: pre-wrap;
         word-break: break-all;
+        line-height: 1.6;
       }
 
       /* ── Service Health Grid ── */
       .services-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
+        gap: 12px;
       }
       .service-card {
-        background: var(--surface2);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
         padding: 16px;
+        transition: all 0.2s ease;
+      }
+      .service-card:hover {
+        border-color: rgba(59, 130, 246, 0.3);
       }
       .service-card .svc-name {
         font-size: 13px;
         font-weight: 600;
         margin-bottom: 4px;
+        color: var(--text-primary);
       }
       .service-card .svc-detail {
-        font-size: 11px;
-        color: var(--muted);
+        font-size: 12px;
+        color: var(--text-muted);
       }
 
       /* ── Two-col grid ── */
       .grid-2 {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 16px;
+        gap: 20px;
       }
       .grid-3 {
         display: grid;
@@ -544,7 +733,7 @@
         width: 14px;
         height: 14px;
         border: 2px solid rgba(255, 255, 255, 0.2);
-        border-top-color: #fff;
+        border-top-color: var(--accent-blue);
         border-radius: 50%;
         animation: spin 0.6s linear infinite;
       }
@@ -557,45 +746,52 @@
       /* ── Empty state ── */
       .empty {
         text-align: center;
-        padding: 40px 20px;
-        color: var(--muted);
+        padding: 50px 20px;
+        color: var(--text-muted);
       }
       .empty .empty-icon {
-        font-size: 36px;
-        margin-bottom: 10px;
+        font-size: 42px;
+        margin-bottom: 12px;
+        opacity: 0.6;
       }
       .empty p {
-        font-size: 13px;
+        font-size: 14px;
       }
 
       /* ── Loading overlay ── */
       .loading-row td {
         text-align: center;
-        padding: 30px;
-        color: var(--muted);
+        padding: 40px;
+        color: var(--text-muted);
         font-size: 13px;
       }
 
       /* ── Responsive ── */
-      @media (max-width: 900px) {
+      @media (max-width: 1100px) {
+        .layout {
+          grid-template-columns: 220px 1fr;
+        }
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 768px) {
         .layout {
           grid-template-columns: 1fr;
         }
         .sidebar {
           display: none;
         }
-        .stats-grid {
-          grid-template-columns: repeat(2, 1fr);
+        .main {
+          padding: 20px;
         }
-        .services-grid {
+        .stats-grid {
           grid-template-columns: 1fr 1fr;
         }
-        .grid-2 {
-          grid-template-columns: 1fr;
-        }
-      }
-      @media (max-width: 600px) {
-        .stats-grid {
+        .services-grid {
           grid-template-columns: 1fr 1fr;
         }
         .form-grid {
@@ -610,8 +806,8 @@
     <!-- Modal: Create License (Admin) -->
     <div class="modal-overlay hidden" id="modal-activate">
       <div class="modal">
-        <h3>🔑 Create New License</h3>
-        <p style="font-size: 12px; color: var(--muted); margin-bottom: 14px">
+        <h3>◆ Create New License</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px">
           Pre-approve a license for a customer. They will bind their hardware when they install the add-on.
         </p>
         <div class="form-grid">
@@ -619,11 +815,13 @@
             <label>Customer Email *</label>
             <input id="act-email" type="email" placeholder="customer@example.com" />
           </div>
-          <div class="form-group">
+          <div class="form-group full">
             <label>Purchase Code *</label>
-            <div style="display: flex; gap: 8px; align-items: center">
-              <input id="act-code" type="text" placeholder="ABC-123-XYZ" style="flex: 1" />
-              <button class="btn btn-ghost btn-sm" type="button" onclick="generatePurchaseCode()" title="Generate random code">⚡ Generate</button>
+            <div style="display: flex; gap: 8px; align-items: center; min-width: 0">
+              <input id="act-code" type="text" placeholder="ABCD-1234-EFGH" style="flex: 1; min-width: 0" />
+              <button class="btn btn-ghost btn-sm" type="button" onclick="generatePurchaseCode()" title="Generate random code" style="flex-shrink: 0">
+                Generate
+              </button>
             </div>
           </div>
           <div class="form-group full">
@@ -641,11 +839,11 @@
     <!-- Modal: View License Token -->
     <div class="modal-overlay hidden" id="modal-token">
       <div class="modal">
-        <h3>🎫 License Token</h3>
-        <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px">Keep this token secure. It binds to the hardware ID.</p>
+        <h3>◇ License Token</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px">Keep this token secure. It binds to the hardware ID.</p>
         <div class="code-block" id="modal-token-content">—</div>
         <div class="form-actions">
-          <button class="btn btn-ghost" onclick="copyToken()">📋 Copy</button>
+          <button class="btn btn-ghost" onclick="copyToken()">Copy</button>
           <button class="btn btn-primary" onclick="closeModal('modal-token')">Close</button>
         </div>
       </div>
@@ -655,24 +853,27 @@
       <!-- Sidebar -->
       <aside class="sidebar">
         <div class="logo">
-          <h1>⚡ License Server</h1>
+          <h1>License Server</h1>
           <p>WebRTC Add-on Manager</p>
         </div>
         <nav class="nav">
-          <div class="nav-item active" onclick="showPage('overview')" id="nav-overview"><span class="icon">🏠</span> Overview</div>
-          <div class="nav-item" onclick="showPage('licenses')" id="nav-licenses"><span class="icon">🔑</span> Licenses</div>
-          <div class="nav-item" onclick="showPage('sessions')" id="nav-sessions"><span class="icon">📡</span> Active Sessions</div>
-          <div class="nav-item" onclick="showPage('security')" id="nav-security"><span class="icon">🛡️</span> Security Incidents</div>
-          <div class="nav-item" onclick="showPage('logs')" id="nav-logs"><span class="icon">📋</span> Validation Logs</div>
-          <div class="nav-item" onclick="showPage('tools')" id="nav-tools"><span class="icon">🔧</span> Tools</div>
+          <div class="nav-section">Main</div>
+          <div class="nav-item active" onclick="showPage('overview')" id="nav-overview"><span class="icon">◈</span> Overview</div>
+          <div class="nav-item" onclick="showPage('licenses')" id="nav-licenses"><span class="icon">◉</span> Licenses</div>
+          <div class="nav-item" onclick="showPage('sessions')" id="nav-sessions"><span class="icon">◷</span> Active Sessions</div>
+          <div class="nav-section">Security</div>
+          <div class="nav-item" onclick="showPage('security')" id="nav-security"><span class="icon">⬡</span> Security Incidents</div>
+          <div class="nav-item" onclick="showPage('logs')" id="nav-logs"><span class="icon">⬢</span> Validation Logs</div>
+          <div class="nav-section">System</div>
+          <div class="nav-item" onclick="showPage('tools')" id="nav-tools"><span class="icon">⚙</span> Tools</div>
         </nav>
         <div class="server-status">
-          <div style="display: flex; align-items: center; margin-bottom: 6px">
+          <div class="server-status-header">
             <span class="dot dot-yellow" id="health-dot"></span>
             <span id="health-label" style="font-weight: 600">Checking...</span>
           </div>
-          <div style="color: var(--muted); font-size: 11px" id="health-sub">API: localhost:8000</div>
-          <button class="btn btn-ghost btn-sm" style="margin-top: 8px; width: 100%; justify-content: center" onclick="refreshAll()">↻ Refresh</button>
+          <div style="color: var(--text-muted); font-size: 12px" id="health-sub">API: localhost:8000</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top: 10px; width: 100%; justify-content: center" onclick="refreshAll()">↻ Refresh</button>
         </div>
       </aside>
 
@@ -687,23 +888,27 @@
 
           <div class="stats-grid">
             <div class="stat-card">
+              <div class="stat-icon blue">◈</div>
               <div class="stat-label">Total Licenses</div>
-              <div class="stat-value text-primary" id="stat-total">—</div>
+              <div class="stat-value" id="stat-total">—</div>
               <div class="stat-sub">All time</div>
             </div>
             <div class="stat-card">
+              <div class="stat-icon green">◉</div>
               <div class="stat-label">Active</div>
-              <div class="stat-value text-green" id="stat-active">—</div>
+              <div class="stat-value" id="stat-active">—</div>
               <div class="stat-sub">Currently valid</div>
             </div>
             <div class="stat-card">
+              <div class="stat-icon red">◉</div>
               <div class="stat-label">Suspended</div>
-              <div class="stat-value text-red" id="stat-suspended">—</div>
+              <div class="stat-value" id="stat-suspended">—</div>
               <div class="stat-sub">Security triggered</div>
             </div>
             <div class="stat-card">
+              <div class="stat-icon cyan">◷</div>
               <div class="stat-label">Active Sessions</div>
-              <div class="stat-value text-blue" id="stat-sessions">—</div>
+              <div class="stat-value" id="stat-sessions">—</div>
               <div class="stat-sub">Last 30 min</div>
             </div>
           </div>
@@ -711,7 +916,7 @@
           <div class="grid-2" style="margin-bottom: 16px">
             <div class="card">
               <div class="card-header">
-                <h3>🏥 Service Health</h3>
+                <h3>◆ Service Health</h3>
                 <button class="btn btn-ghost btn-sm" onclick="checkHealth()">Check Now</button>
               </div>
               <div class="services-grid" id="services-grid">
@@ -732,7 +937,7 @@
 
             <div class="card">
               <div class="card-header">
-                <h3>🛡️ Recent Security Incidents</h3>
+                <h3>◆ Recent Security Incidents</h3>
                 <span id="incident-count-badge" class="badge badge-info">0</span>
               </div>
               <div class="table-wrap">
@@ -756,7 +961,7 @@
 
           <div class="card">
             <div class="card-header">
-              <h3>🔑 Recent Licenses</h3>
+              <h3>◆ Recent Licenses</h3>
               <button class="btn btn-primary btn-sm" onclick="openModal('modal-activate')">+ Create License</button>
             </div>
             <div class="table-wrap">
@@ -920,8 +1125,8 @@
             </div>
             <select id="log-filter" onchange="filterLogs()" style="width: 140px">
               <option value="">All results</option>
-              <option value="true">Valid ✅</option>
-              <option value="false">Invalid ❌</option>
+              <option value="true">Valid</option>
+              <option value="false">Invalid</option>
             </select>
             <button class="btn btn-ghost" onclick="loadLogs()">↻</button>
           </div>
@@ -959,7 +1164,7 @@
           <div class="grid-2">
             <!-- License Lookup -->
             <div class="card">
-              <div class="card-header"><h3>🔍 License Lookup</h3></div>
+              <div class="card-header"><h3>◇ License Lookup</h3></div>
               <div class="form-group" style="margin-bottom: 12px">
                 <label>Purchase Code</label>
                 <input id="lookup-code" type="text" placeholder="Enter purchase code" />
@@ -972,7 +1177,7 @@
 
             <!-- Health Check -->
             <div class="card">
-              <div class="card-header"><h3>🏥 Health Check</h3></div>
+              <div class="card-header"><h3>◇ Health Check</h3></div>
               <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px">Run a full health check against <code>GET /health</code></p>
               <button class="btn btn-primary" onclick="runHealthCheck()">Run Health Check</button>
               <div id="health-result" style="margin-top: 14px; display: none">
@@ -982,7 +1187,7 @@
 
             <!-- Public Key -->
             <div class="card">
-              <div class="card-header"><h3>🔐 RSA Public Key</h3></div>
+              <div class="card-header"><h3>◇ RSA Public Key</h3></div>
               <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px">
                 Fetch the current RSA-4096 public key from <code>GET /api/v1/public_key</code>
               </p>
@@ -994,7 +1199,7 @@
 
             <!-- Manual Validate -->
             <div class="card">
-              <div class="card-header"><h3>✅ Manual Token Validate</h3></div>
+              <div class="card-header"><h3>◇ Manual Token Validate</h3></div>
               <div class="form-group" style="margin-bottom: 10px">
                 <label>Token</label>
                 <textarea id="validate-token" rows="3" placeholder="Paste license token here…" style="resize: vertical"></textarea>
@@ -1016,8 +1221,8 @@
             </div>
 
             <!-- Danger Zone -->
-            <div class="card" style="border-color: rgba(239, 68, 68, 0.3); grid-column: 1/-1">
-              <div class="card-header"><h3 class="text-red">⚠️ Danger Zone</h3></div>
+            <div class="card" style="border-color: rgba(244, 63, 94, 0.3); grid-column: 1/-1">
+              <div class="card-header"><h3 style="color: var(--accent-rose)">◆ Danger Zone</h3></div>
               <div style="display: flex; gap: 16px; flex-wrap: wrap">
                 <div>
                   <p style="font-size: 13px; color: var(--muted); margin-bottom: 8px">Truncate all DB tables (dev/test only)</p>
@@ -1054,10 +1259,10 @@
 
       /* ─── Toast ─── */
       function toast(msg, type = "info") {
-        const icons = { success: "✅", error: "❌", info: "ℹ️" };
+        const icons = { success: "✓", error: "✕", info: "●" };
         const el = document.createElement("div");
         el.className = `toast ${type}`;
-        el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+        el.innerHTML = `<span style="font-size:14px">${icons[type]}</span><span>${msg}</span>`;
         document.getElementById("toast-container").appendChild(el);
         setTimeout(() => el.remove(), 3500);
       }
@@ -1136,7 +1341,7 @@
         const data = await api("/api/v1/admin/licenses");
         if (data.error || !Array.isArray(data)) {
           allLicenses = [];
-          tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">🔑</div><p>Could not load licenses.<br>Make sure the server is running and an admin endpoint is available.</p></div></td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">◈</div><p>Could not load licenses.<br>Make sure the server is running and an admin endpoint is available.</p></div></td></tr>`;
           tbody2.innerHTML = `<tr><td colspan="5"><div class="empty"><p>No data</p></div></td></tr>`;
           updateStatsFromLicenses([]);
           return;
@@ -1149,7 +1354,7 @@
         // Recent (top 5)
         const recent = data.slice(0, 5);
         if (recent.length === 0) {
-          tbody2.innerHTML = '<tr><td colspan="5"><div class="empty"><p>No licenses yet.</p></div></td></tr>';
+          tbody2.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">◈</div><p>No licenses yet.</p></div></td></tr>';
         } else {
           tbody2.innerHTML = recent
             .map(
@@ -1174,7 +1379,7 @@
 
       function renderLicenseTable(data, tbody) {
         if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">🔑</div><p>No licenses found.</p></div></td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">◈</div><p>No licenses found.</p></div></td></tr>';
           return;
         }
         tbody.innerHTML = data
@@ -1292,8 +1497,12 @@
         }
       }
       function copyToken() {
-        navigator.clipboard.writeText(document.getElementById("modal-token-content").textContent);
-        toast("Token copied to clipboard!", "success");
+        try {
+          navigator.clipboard.writeText(document.getElementById("modal-token-content").textContent);
+          toast("Token copied to clipboard!", "success");
+        } catch (e) {
+          toast("Failed to copy - clipboard not available", "error");
+        }
       }
 
       /* ─── Sessions ─── */
@@ -1305,7 +1514,7 @@
         document.getElementById("sessions-updated").textContent = "Updated " + new Date().toLocaleTimeString();
 
         if (data.error || !Array.isArray(data)) {
-          tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">📡</div><p>No session data available.</p></div></td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">◷</div><p>No session data available.</p></div></td></tr>';
           document.getElementById("stat-sessions").textContent = "—";
           return;
         }
@@ -1313,7 +1522,7 @@
         document.getElementById("stat-sessions").textContent = data.length;
 
         if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">📡</div><p>No active sessions right now.</p></div></td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">◷</div><p>No active sessions right now.</p></div></td></tr>';
           return;
         }
 
@@ -1341,7 +1550,7 @@
         document.getElementById("incident-count-badge").textContent = Array.isArray(data) ? data.length : "?";
 
         if (data.error || !Array.isArray(data)) {
-          tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">🛡️</div><p>No incident data available.</p></div></td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">⬡</div><p>No incident data available.</p></div></td></tr>';
           tbody2.innerHTML = '<tr><td colspan="3"><div class="empty"><p>No data</p></div></td></tr>';
           document.getElementById("sec-hw").textContent = "—";
           document.getElementById("sec-concurrent").textContent = "—";
@@ -1366,7 +1575,7 @@
         tbody2.innerHTML = data.slice(0, 5).map(renderRow).join("") || '<tr><td colspan="3"><div class="empty"><p>No incidents</p></div></td></tr>';
 
         if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">✅</div><p>No security incidents recorded.</p></div></td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">✓</div><p>No security incidents recorded.</p></div></td></tr>';
           return;
         }
 
@@ -1392,7 +1601,7 @@
 
         const data = await api("/api/v1/admin/logs");
         if (data.error || !Array.isArray(data)) {
-          tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">📋</div><p>No validation log data available.</p></div></td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">⬢</div><p>No validation log data available.</p></div></td></tr>';
           allLogs = [];
           return;
         }
@@ -1404,7 +1613,7 @@
       function renderLogsTable(data) {
         const tbody = document.getElementById("logs-table");
         if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">📋</div><p>No logs yet.</p></div></td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">⬢</div><p>No logs yet.</p></div></td></tr>';
           return;
         }
         tbody.innerHTML = data
@@ -1413,7 +1622,7 @@
     <tr>
       <td>${l.user_email || "—"}</td>
       <td style="font-family:monospace;font-size:11px;">${truncate(l.session_id, 20)}</td>
-      <td>${l.is_valid ? '<span class="badge badge-active">✅ Valid</span>' : '<span class="badge badge-suspended">❌ Invalid</span>'}</td>
+      <td>${l.is_valid ? '<span class="badge badge-active">Valid</span>' : '<span class="badge badge-suspended">Invalid</span>'}</td>
       <td style="font-size:12px;color:var(--muted);">${l.failure_reason || "—"}</td>
       <td style="font-size:12px;">${l.ip_address || "—"}</td>
       <td style="font-size:12px;">${l.country || "—"}</td>
@@ -1482,7 +1691,7 @@
         });
         document.getElementById("validate-output").textContent = JSON.stringify(data, null, 2);
         document.getElementById("validate-result").style.display = "block";
-        if (data.valid) toast("Token is valid ✅", "success");
+        if (data.valid) toast("Token is valid", "success");
         else toast("Token invalid: " + (data.detail || data.message || "unknown"), "error");
       }
 
@@ -1497,8 +1706,12 @@
 
       function copyDbCmd() {
         const cmd = `docker-compose exec db psql -U license_user -d webrtc_licenses`;
-        navigator.clipboard.writeText(cmd);
-        toast("DB connection command copied!", "success");
+        try {
+          navigator.clipboard.writeText(cmd);
+          toast("DB connection command copied!", "success");
+        } catch (e) {
+          toast("Failed to copy - clipboard not available", "error");
+        }
       }
 
       /* ─── Refresh All ─── */
