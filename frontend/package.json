@@ -1,6 +1,6 @@
 {
   "name": "voice-streaming-frontend",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "description": "Voice Streaming Cards for Home Assistant",
   "scripts": {

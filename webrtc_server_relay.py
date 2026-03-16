@@ -4,6 +4,7 @@ import logging
 import os
 import ssl
 import uuid
+from pathlib import Path
 from typing import Dict
 
 from aiohttp import WSMsgType, web
@@ -11,7 +12,7 @@ from aiortc import RTCConfiguration, RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaRelay
 
 from audio_stream_server import AudioStreamServer
-from udp_streamer import UDPAudioStreamer
+from license_client import LicenseClient
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,8 @@ class VoiceStreamingServer:
         self.app = web.Application()
         self.relay = MediaRelay()
         self.audio_server = AudioStreamServer(self)
+        self.license_client: LicenseClient | None = None
+        self.license_task = None
         self.setup_routes()
 
     def setup_routes(self):
@@ -37,28 +40,30 @@ class VoiceStreamingServer:
     async def metrics_handler(self, request):
         """Provide Prometheus-compatible or JSON metrics"""
         uptime = int(asyncio.get_event_loop().time() - self.start_time)
-        return web.json_response(
-            {
-                "uptime_seconds": uptime,
-                "active_connections": len(self.connections),
-                "active_streams": len(self.active_streams),
-                "total_audio_bytes": self.total_audio_bytes,
-                "webrtc_available": True,
-            }
-        )
+        resp = {
+            "uptime_seconds": uptime,
+            "active_connections": len(self.connections),
+            "active_streams": len(self.active_streams),
+            "total_audio_bytes": self.total_audio_bytes,
+            "webrtc_available": True,
+        }
+        if self.license_client:
+            resp["license"] = self.license_client.get_status()
+        return web.json_response(resp)
 
     async def health_check(self, request):
         uptime = int(asyncio.get_event_loop().time() - self.start_time)
-        return web.json_response(
-            {
-                "status": "healthy",
-                "webrtc_available": True,
-                "audio_server_running": self.audio_server is not None,
-                "active_streams": len(self.active_streams),
-                "connected_clients": len(self.connections),
-                "uptime_seconds": uptime,
-            }
-        )
+        resp = {
+            "status": "healthy",
+            "webrtc_available": True,
+            "audio_server_running": self.audio_server is not None,
+            "active_streams": len(self.active_streams),
+            "connected_clients": len(self.connections),
+            "uptime_seconds": uptime,
+        }
+        if self.license_client:
+            resp["license"] = self.license_client.get_status()
+        return web.json_response(resp)
 
     async def cleanup_stale_streams(self):
         """Periodically clean up streams with no active receivers"""
@@ -472,9 +477,60 @@ class VoiceStreamingServer:
                 return web.FileResponse(path)
         return web.Response(status=404, text="CA Certificate not found")
 
+    def _init_license_client(self):
+        """Initialise the license client from environment variables."""
+        server_url = os.environ.get("LICENSE_SERVER_URL", "")
+        email = os.environ.get("LICENSE_EMAIL", "")
+        purchase_code = os.environ.get("PURCHASE_CODE", "")
+
+        if server_url and email and purchase_code:
+            self.license_client = LicenseClient(
+                server_url=server_url,
+                email=email,
+                purchase_code=purchase_code,
+            )
+            logger.info("License client initialised.")
+        else:
+            logger.warning(
+                "License env vars not set – running without license validation."
+            )
+
+    def _get_telemetry(self) -> dict:
+        """Collect runtime telemetry for license validation."""
+        try:
+            import resource
+            mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024  # MB
+        except Exception:
+            mem = 0.0
+
+        return {
+            "active_streams": len(self.active_streams),
+            "connected_clients": len(self.connections),
+            "memory_usage": mem,
+            "uptime_seconds": int(
+                asyncio.get_event_loop().time() - self.start_time
+            ),
+            "addon_version": "1.1.6",
+        }
+
+    async def _license_loop(self):
+        """Background task that periodically validates the license."""
+        if not self.license_client:
+            return
+        result = await self.license_client.periodic_validation_loop(
+            get_telemetry=self._get_telemetry,
+        )
+        if result is False:
+            logger.error("License loop terminated – shutting down server.")
+            # Graceful shutdown
+            raise SystemExit(1)
+
     async def run_server(self):
         base_port = int(os.environ.get("PORT", 8080))
         host = "0.0.0.0"
+
+        # ── LICENSE CLIENT ──
+        self._init_license_client()
 
         # Check for SSL certificates
         ssl_context = None
@@ -575,6 +631,12 @@ class VoiceStreamingServer:
             logger.warning(f"Could not write server state: {e}")
 
         self.cleanup_task = asyncio.create_task(self.cleanup_stale_streams())
+
+        # ── LICENSE BACKGROUND LOOP ──
+        if self.license_client:
+            self.license_task = asyncio.create_task(self._license_loop())
+            logger.info("License validation background task started.")
+
         protocol = "https/wss" if ssl_context else "http/ws"
         logger.info(
             f"✅ Server successfully started on {protocol}://{host}:{active_port}"

@@ -20,3 +20,5 @@ ssl/*.backup_*
 # OS
 .DS_Store
 Thumbs.db
+
+/license_server

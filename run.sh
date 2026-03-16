@@ -18,6 +18,33 @@ fi
 echo "[INFO] Attempting to register Lovelace resource..."
 python3 /app/register_frontend.py || echo "[WARN] Failed to register frontend resource"
 
+# ── Step 0.8: License Validation ──
+echo "[INFO] Validating license..."
+LICENSE_SERVER_URL=$(jq -r '.license_server_url // ""' /data/options.json)
+LICENSE_EMAIL=$(jq -r '.license_email // ""' /data/options.json)
+PURCHASE_CODE=$(jq -r '.purchase_code // ""' /data/options.json)
+
+if [ -z "$LICENSE_SERVER_URL" ] || [ -z "$LICENSE_EMAIL" ] || [ -z "$PURCHASE_CODE" ]; then
+    echo "[ERROR] License configuration missing."
+    echo "[ERROR] Set license_server_url, license_email, and purchase_code in add-on config."
+    exit 1
+fi
+
+export LICENSE_SERVER_URL
+export LICENSE_EMAIL
+export PURCHASE_CODE
+
+python3 /app/license_client.py activate \
+    --server "$LICENSE_SERVER_URL" \
+    --email "$LICENSE_EMAIL" \
+    --purchase-code "$PURCHASE_CODE"
+
+if [ $? -ne 0 ]; then
+    echo "[ERROR] License activation/validation failed. The add-on cannot start."
+    exit 1
+fi
+echo "[INFO] ✅ License validated successfully."
+
 # ── Helper: Minimal CA cert download server ──
 start_ca_download_server() {
     local CA_PORT=8080
