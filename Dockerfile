@@ -1,3 +1,5 @@
+ARG BUILD_FROM=alpine:latest
+
 # Stage 1: Build the frontend
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app
@@ -7,7 +9,6 @@ COPY frontend/ ./frontend/
 RUN cd frontend && npm run build
 
 # Stage 2: Final image
-ARG BUILD_FROM=alpine:latest
 FROM $BUILD_FROM
 
 # Install dependencies
