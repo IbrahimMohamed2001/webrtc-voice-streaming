@@ -22,7 +22,7 @@ ssl/*.backup_*
 Thumbs.db
 
 # License Server
-license_server
+# license_server
 
 # OpenCode
 opencode.jsonc

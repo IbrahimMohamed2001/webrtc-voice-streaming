@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: license_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: license_user
+      POSTGRES_PASSWORD: license_pass
+      POSTGRES_DB: webrtc_licenses
+    volumes:
+      - license_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U license_user -d webrtc_licenses"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - license_network
+
+  license_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: license_server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://license_user:license_pass@db:5432/webrtc_licenses
+      SECRET_KEY: ${SECRET_KEY:-change_this_to_a_secure_random_string}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost,https://localhost,http://localhost:3000}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - license_keys:/keys
+    networks:
+      - license_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: license_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - license_keys:/keys:ro
+      - license_logs:/var/log/nginx
+    depends_on:
+      - license_server
+    networks:
+      - license_network
+
+volumes:
+  license_postgres_data:
+  license_keys:
+  license_logs:
+
+networks:
+  license_network:
+    driver: bridge
