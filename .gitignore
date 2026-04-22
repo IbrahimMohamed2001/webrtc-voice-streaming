@@ -6,12 +6,9 @@ venv/
 .venv/
 
 # SSL Certificates
-ssl/fullchain.pem
-ssl/privkey.pem
-ssl/homeassistant.crt
-ssl/homeassistant.key
-ssl/homeassistant.csr
-ssl/*.backup_*
+ssl/
+
+config/
 
 # IDEs
 .vscode/
