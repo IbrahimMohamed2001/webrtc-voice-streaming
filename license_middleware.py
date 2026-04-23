@@ -3,6 +3,7 @@ import os
 import aiohttp
 from aiohttp import web
 
+# Set up logger
 logger = logging.getLogger(__name__)
 
 # Constants for configuration, can be overridden by environment variables
@@ -16,6 +17,9 @@ class LicenseManager:
     def __init__(self, ha_address=None, license_server_url=None):
         self.ha_address = ha_address or HA_ADDRESS
         self.license_server_url = license_server_url or LICENSE_SERVER_URL
+        logger.info(
+            f"[LicenseManager] Initialized with HA_ADDRESS: {self.ha_address} and LICENSE_SERVER: {self.license_server_url}"
+        )
 
     async def verify_license(self):
         """
@@ -24,45 +28,76 @@ class LicenseManager:
         """
         try:
             url_get_key = f"{self.ha_address.rstrip('/')}/api/get_key"
+            logger.info(f"[LicenseManager] Step 1: Fetching key from {url_get_key}")
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(url_get_key, timeout=10) as resp:
+                    logger.info(f"[LicenseManager] HA Response status: {resp.status}")
                     if resp.status == 200:
                         data = await resp.json()
                         if data and "key" in data:
                             key = data["key"]
+                            logger.info(
+                                f"[LicenseManager] Step 2: Key found. Verifying with remote server..."
+                            )
 
                             verify_url = f"{self.license_server_url.rstrip('/')}/verify"
+                            logger.info(
+                                f"[LicenseManager] Hitting verify URL: {verify_url} with mac={key}"
+                            )
+
                             async with session.get(
                                 verify_url, params={"mac": key}, timeout=10
                             ) as response:
+                                logger.info(
+                                    f"[LicenseManager] Remote Server Response status: {response.status}"
+                                )
+
                                 if response.status == 200:
                                     res_json = await response.json()
+                                    logger.info(
+                                        f"[LicenseManager] Remote Server Response JSON: {res_json}"
+                                    )
                                     if res_json.get("status") == "success":
+                                        logger.info(
+                                            "[LicenseManager] ✅ License verification SUCCESSFUL"
+                                        )
                                         return res_json
+                                    else:
+                                        logger.warning(
+                                            f"[LicenseManager] ❌ License verification FAILED: {res_json.get('message')}"
+                                        )
 
                                 if response.status == 401:
                                     logger.error(
-                                        "Unauthorized access to license server."
+                                        "[LicenseManager] ❌ 401 Unauthorized: License expired"
                                     )
                                     return {"status": 401, "message": "License expired"}
                                 elif response.status == 404:
                                     logger.error(
-                                        "License endpoint not found on server."
+                                        "[LicenseManager] ❌ 404 Not Found: License endpoint issue"
                                     )
                                     return {"status": 404, "message": "Unauthorized"}
 
+                                logger.error(
+                                    f"[LicenseManager] ❌ Unexpected remote status: {response.status}"
+                                )
                                 return None
                         else:
-                            logger.error("License key 'key' not found in HA response.")
+                            logger.error(
+                                "[LicenseManager] ❌ No 'key' field in HA JSON response"
+                            )
                             return None
                     else:
                         logger.error(
-                            f"Failed to retrieve key from HA. Status: {resp.status}"
+                            f"[LicenseManager] ❌ Failed to connect to HA API. Status: {resp.status}"
                         )
                         return None
         except Exception as e:
-            logger.error(f"Error in license verification: {e}")
+            logger.error(
+                f"[LicenseManager] ❌ Exception during verification: {str(e)}",
+                exc_info=True,
+            )
             return None
 
 
@@ -70,14 +105,14 @@ class LicenseManager:
 async def license_middleware(request: web.Request, handler):
     """
     aiohttp middleware to protect routes.
-    Protects /, /ws, and all other routes except health/metrics.
     """
     # 1. Bypass check for health and utility routes
     if request.path in ["/health", "/metrics", "/ca.crt"]:
         return await handler(request)
 
-    # 2. Perform license check for all other routes including / and /ws
-    logger.debug(f"Checking license for route: {request.path}")
+    logger.info(f"[Middleware] Incoming request: {request.method} {request.path}")
+
+    # 2. Perform license check
     manager = LicenseManager()
     license_data = await manager.verify_license()
 
@@ -85,7 +120,9 @@ async def license_middleware(request: web.Request, handler):
     if license_data and license_data.get("status") == "success":
         return await handler(request)
 
-    # Specific error handling
+    # Error Handling
+    logger.warning(f"[Middleware] Blocking request to {request.path} - License invalid")
+
     if license_data and isinstance(license_data, dict):
         status = license_data.get("status", 401)
         message = license_data.get("message", "Unauthorized")
@@ -98,7 +135,6 @@ async def license_middleware(request: web.Request, handler):
             {"status": "error", "message": message}, status=status_int
         )
 
-    # Default Unauthorized
     return web.json_response(
         {"status": "error", "message": "Unauthorized: License verification failed"},
         status=401,

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+export PYTHONUNBUFFERED=1
+
 echo "════════════════════════════════════════"
 echo "      WebRTC Voice Add-on Starting      "
 echo "════════════════════════════════════════"
