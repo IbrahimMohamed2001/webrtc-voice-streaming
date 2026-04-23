@@ -38,7 +38,7 @@ class LicenseManager:
                         if data and "key" in data:
                             key = data["key"]
                             logger.info(
-                                f"[LicenseManager] Step 2: Key found. Verifying with remote server..."
+                                "[LicenseManager] Step 2: Key found. Verifying with remote server..."
                             )
 
                             verify_url = f"{self.license_server_url.rstrip('/')}/verify"
