@@ -18,7 +18,9 @@ RESOURCE_URL = "/local/voice_streaming_backend/dist/voice-streaming-card-dashboa
 RESOURCE_TYPE = "module"
 
 # Supervisor API endpoint for Core API proxy
-BASE_URL = "http://supervisor/core/api"
+# derive BASE_URL from HA_ADDRESS if available, otherwise use supervisor proxy
+HA_ADDRESS = os.environ.get("HA_ADDRESS", "http://supervisor/core")
+BASE_URL = f"{HA_ADDRESS.rstrip('/')}/api"
 
 
 async def register():

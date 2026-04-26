@@ -17,6 +17,10 @@ else
 fi
 
 # ── Step 0.5: Register Frontend Resource ──
+export LOG_LEVEL=$(jq -r '.log_level // "info"' /data/options.json)
+export AUDIO_PORT=$(jq -r '.audio_port // "8081"' /data/options.json)
+export HA_ADDRESS=$(jq -r '.ha_address // "http://homeassistant:8123"' /data/options.json)
+
 echo "[INFO] Attempting to register Lovelace resource..."
 python3 /app/register_frontend.py || echo "[WARN] Failed to register frontend resource"
 
@@ -115,8 +119,6 @@ homeassistant | self-signed)
 	export PORT=8443
 	export SSL_CERT_FILE="$CERT_FILE"
 	export SSL_KEY_FILE="$KEY_FILE"
-	export LOG_LEVEL=$(jq -r '.log_level // "info"' /data/options.json)
-	export AUDIO_PORT=$(jq -r '.audio_port // "8081"' /data/options.json)
 
 	exec python3 /app/webrtc_server_relay.py
 	;;
@@ -126,8 +128,6 @@ ingress)
 
 	# Start your WebRTC server WITHOUT TLS (Ingress handles it)
 	export PORT=8099
-	export LOG_LEVEL=$(jq -r '.log_level // "info"' /data/options.json)
-	export AUDIO_PORT=$(jq -r '.audio_port // "8081"' /data/options.json)
 	# No SSL env vars
 
 	exec python3 /app/webrtc_server_relay.py
