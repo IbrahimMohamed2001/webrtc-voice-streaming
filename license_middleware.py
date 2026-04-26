@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # Constants for configuration, can be overridden by environment variables
 LICENSE_SERVER_URL = os.environ.get("LICENSE_SERVER_URL", "https://tis-license.in/api/")
-HA_ADDRESS = os.environ.get("HA_ADDRESS", "http://homeassistant.local:8123")
+HA_ADDRESS = os.environ.get("HA_ADDRESS", "http://homeassistant:8123")
 
 
 class LicenseManager:
